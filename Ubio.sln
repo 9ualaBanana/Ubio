@@ -5,6 +5,8 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ubio", "Ubio\Ubio.csproj", "{7AA6B942-7A2E-4657-8F77-FF2EC7AEF8B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ubio.Test", "Ubio.Test\Ubio.Test.csproj", "{4C896C40-A6E3-4353-ADDF-FE03CAD7CA21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7AA6B942-7A2E-4657-8F77-FF2EC7AEF8B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AA6B942-7A2E-4657-8F77-FF2EC7AEF8B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AA6B942-7A2E-4657-8F77-FF2EC7AEF8B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C896C40-A6E3-4353-ADDF-FE03CAD7CA21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C896C40-A6E3-4353-ADDF-FE03CAD7CA21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C896C40-A6E3-4353-ADDF-FE03CAD7CA21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C896C40-A6E3-4353-ADDF-FE03CAD7CA21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
