@@ -6,12 +6,13 @@ namespace System.IO;
 [SupportedOSPlatform("windows")]
 public class UnbufferedFileStream : Stream
 {
-    IntPtr _Handle => _SafeFileHandle.DangerousGetHandle();
-    internal readonly SafeFileHandle _SafeFileHandle;
     readonly FileAccess _fileAccess;
-    
-    
+
+
+    IntPtr _Handle => SafeFileHandle.DangerousGetHandle();
+    public readonly SafeFileHandle SafeFileHandle;
     public readonly DiskSector DiskSector;
+    public string Name { get; }
     public override long Length => _length;
     long _length;
     public override long Position
@@ -20,6 +21,7 @@ public class UnbufferedFileStream : Stream
         set => Seek(value, SeekOrigin.Begin);
     }
     long _position;
+    public bool IsAsync { get; }
 
 
     #region Constructors
@@ -56,7 +58,7 @@ public class UnbufferedFileStream : Stream
 
     public UnbufferedFileStream(string path, FileStreamOptions options)
     {
-        _SafeFileHandle = new(
+        SafeFileHandle = new(
             Win32.CreateFile(
                 path,
                 options.Access,
@@ -67,9 +69,11 @@ public class UnbufferedFileStream : Stream
                 IntPtr.Zero),
             ownsHandle: true);
         DiskSector = new(path);
+        Name = path;
         _fileAccess = options.Access;
         _length = Win32.GetFileSize(_Handle);
         _position = Win32.GetFilePointerPosition(_Handle);
+        IsAsync = options.Options.HasFlag(FileOptions.Asynchronous);
     }
     #endregion
 
