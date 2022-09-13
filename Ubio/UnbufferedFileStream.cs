@@ -6,8 +6,8 @@ namespace System.IO;
 [SupportedOSPlatform("windows")]
 public class UnbufferedFileStream : Stream
 {
-    IntPtr _Handle => _safeFileHandle.DangerousGetHandle();
-    readonly SafeFileHandle _safeFileHandle;
+    IntPtr _Handle => _SafeFileHandle.DangerousGetHandle();
+    internal readonly SafeFileHandle _SafeFileHandle;
     readonly FileAccess _fileAccess;
     
     
@@ -56,7 +56,7 @@ public class UnbufferedFileStream : Stream
 
     public UnbufferedFileStream(string path, FileStreamOptions options)
     {
-        _safeFileHandle = new(
+        _SafeFileHandle = new(
             Win32.CreateFile(
                 path,
                 options.Access,
