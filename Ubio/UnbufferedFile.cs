@@ -13,7 +13,7 @@ public static class UnbufferedFile
         FileShare share = FileShare.Read,
         FileOptions options = FileOptions.None) => Open(path, new FileStreamOptions
         { Mode = mode, Access = access, Share = share, Options = options })
-        ._SafeFileHandle;
+        .SafeFileHandle;
 
     public static UnbufferedFileStream Open(string path, FileMode mode) =>
         Open(path, mode, FileAccess.ReadWrite);
@@ -34,16 +34,8 @@ public static class UnbufferedFile
     public static UnbufferedFileStream OpenWrite(string path) =>
         new(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 
-    public static StreamReader OpenText(string path) => new(OpenRead(path));
-
     public static UnbufferedFileStream OpenRead(string path) =>
         new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-    public static StreamWriter CreateText(string path) =>
-        new(new UnbufferedFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.Read));
-
-    public static StreamWriter AppendText(string path) =>
-        new(new UnbufferedFileStream(path, FileMode.Append, FileAccess.ReadWrite, FileShare.Read));
 
 
     internal static uint WithFileFlagsDisablingBuffering(this FileOptions options)
