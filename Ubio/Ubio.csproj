@@ -5,12 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<PackageId>Ubio</PackageId>
-	<Version>0.7.0</Version>
+	<Version>0.8.0</Version>
 	<Authors>9ualaBanana</Authors>
 	<Company>9ualaBanana</Company>
 	<Copyright>9ualaBanana</Copyright>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<Description>File stream with disabled OS level read/write buffering.</Description>
+	<Description>Library for manipulating files with disabled OS level read/write buffering.</Description>
 	<RepositoryUrl>https://github.com/9ualaBanana/Ubio</RepositoryUrl>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
