@@ -23,10 +23,21 @@ public class DiskSectorWriter : IDisposable
     #endregion
 
 
-    public virtual void WriteLogicalSectorAsync(byte[] sector) =>
+    public void WriteSector(byte[] sector) => WriteSectorAsync(sector).Wait();
+
+    public async Task WriteSectorAsync(byte[] sector, CancellationToken cancellationToken = default)
+    {
+        if (sector.Length == UnbufferedFileStream.DiskSector.PhysicalSize)
+        { await WritePhysicalSectorAsync(sector, cancellationToken); }
+        else
+        { await WriteLogicalSectorAsync(sector, cancellationToken); }
+    }
+
+    // TODO: Wrap ArgumentOutOfRange exceptions thrown by .AsSpan() into more descriptive ones.
+    public virtual void WriteLogicalSector(byte[] sector) =>
         UnbufferedFileStream.Write(sector.AsSpan(0, UnbufferedFileStream.DiskSector.LogicalSize));
 
-    public virtual void WritePhysicalSectorAsync(byte[] sector) =>
+    public virtual void WritePhysicalSector(byte[] sector) =>
         UnbufferedFileStream.Write(sector.AsSpan(0, UnbufferedFileStream.DiskSector.PhysicalSize));
 
     public virtual async Task WriteLogicalSectorAsync(byte[] sector, CancellationToken cancellationToken = default) =>
