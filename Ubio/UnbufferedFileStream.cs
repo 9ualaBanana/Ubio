@@ -118,4 +118,17 @@ public class UnbufferedFileStream : Stream
     public void Lock(long position, long length) => Win32.LockFile(_Handle, position, length);
 
     public void Unlock(long position, long length) => Win32.UnlockFile(_Handle, position, length);
+
+
+    #region IDisposable
+    protected override void Dispose(bool managed)
+    {
+        if (!_isDisposed && managed)
+            SafeFileHandle.Dispose();
+        
+        _isDisposed = true;
+    }
+
+    bool _isDisposed;
+    #endregion
 }
