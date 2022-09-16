@@ -24,11 +24,11 @@ public class DiskSectorReader : IDisposable
     #endregion
 
 
-    public void SkipLogicalSector() => SkipSector(UnbufferedFileStream.DiskSector.LogicalSize);
+    public void SkipLogicalSector() => _SkipSector(UnbufferedFileStream.DiskSector.LogicalSize);
 
-    public void SkipPhysicalSector() => SkipSector(UnbufferedFileStream.DiskSector.PhysicalSize);
+    public void SkipPhysicalSector() => _SkipSector(UnbufferedFileStream.DiskSector.PhysicalSize);
 
-    void SkipSector(int sectorSize)
+    void _SkipSector(int sectorSize)
     {
         if (UnbufferedFileStream.Position + sectorSize <= UnbufferedFileStream.Length)
         { UnbufferedFileStream.Seek(sectorSize, SeekOrigin.Current); }

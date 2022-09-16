@@ -142,7 +142,7 @@ public static class UnbufferedFile
     {
         using var diskSectorWriter = new DiskSectorWriter(unbufferedFileStream);
         foreach (byte[] sector in sectors)
-            await diskSectorWriter.WritePhysicalSectorAsync(sector, cancellationToken);
+            await diskSectorWriter.WriteSectorAsync(sector, cancellationToken);
     }
     #endregion
 

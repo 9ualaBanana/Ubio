@@ -27,7 +27,7 @@ public class DiskSectorWriter : IDisposable
 
     public async Task WriteSectorAsync(byte[] sector, CancellationToken cancellationToken = default)
     {
-        if (sector.Length == UnbufferedFileStream.DiskSector.PhysicalSize)
+        if (sector.Length >= UnbufferedFileStream.DiskSector.PhysicalSize)
         { await WritePhysicalSectorAsync(sector, cancellationToken); }
         else
         { await WriteLogicalSectorAsync(sector, cancellationToken); }
