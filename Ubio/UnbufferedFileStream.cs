@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿global using Ubio.Internal;
+using Microsoft.Win32.SafeHandles;
 using System.Runtime.Versioning;
 
 namespace System.IO;

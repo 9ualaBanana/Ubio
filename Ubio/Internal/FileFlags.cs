@@ -1,4 +1,4 @@
-﻿namespace System.IO;
+﻿namespace Ubio.Internal;
 
 [Flags]
 internal enum FileFlags : uint

@@ -9,7 +9,8 @@ public class DiskSector
 
     internal DiskSector(string path)
     {
-        (LogicalSize, PhysicalSize) = Win32.GetSectorSizes(Path.IsPathRooted(path) ? Path.GetPathRoot(path) : null);
+        (LogicalSize, PhysicalSize) = Win32.GetSectorSizes(Path.IsPathRooted(path) ?
+            Path.GetPathRoot(path) : null/*current working directory root*/);
     }
 
 

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace System.IO;
+namespace Ubio.Internal;
 
 internal static class Win32
 {
@@ -121,7 +121,7 @@ internal static class Win32
             (uint)nativePosition.OffsetLow, (uint)nativePosition.OffsetHigh,
             (uint)nativeLength.OffsetLow, (uint)nativeLength.OffsetHigh))
             ThrowExceptionForLastWin32Error();
-        
+
     }
 
     [DllImport("kernel32.dll")]

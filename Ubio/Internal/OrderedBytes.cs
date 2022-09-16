@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Versioning;
 
-namespace System.IO;
+namespace Ubio.Internal;
 
 internal readonly struct OrderedBytes
 {
