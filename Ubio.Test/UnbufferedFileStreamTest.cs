@@ -1,16 +1,11 @@
 namespace Ubio.Test;
 
-public class IOTest
+public class UnbufferedFileStreamTest
 {
-    UnbufferedFileStream TestFile => new UnbufferedFileStream(
-        Path.GetRandomFileName(),
-        new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.ReadWrite, Options = FileOptions.DeleteOnClose });
-
-
     [Fact]
     public void Seek_ToSectorAlignedPosition_ChangesPosition()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var sectorAllignedPosition = file.DiskSector.LogicalSize;
 
         file.Seek(sectorAllignedPosition, SeekOrigin.Begin);
@@ -21,7 +16,7 @@ public class IOTest
     [Fact]
     public void Seek_ToNonSectorAlignedPosition_Throws()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var nonSectorAllignedPosition = file.DiskSector.LogicalSize + 1;
 
         Action seekingToNonSectorAlignedPosition = () => file.Seek(nonSectorAllignedPosition, SeekOrigin.Begin);
@@ -32,7 +27,7 @@ public class IOTest
     [Fact]
     public void SetLength_ToSectorAlignedPosition_SetsLength()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var sectorAllignedPosition = file.DiskSector.LogicalSize;
 
         file.SetLength(sectorAllignedPosition);
@@ -43,7 +38,7 @@ public class IOTest
     [Fact]
     public void SetLength_ToNonSectorAlignedPosition_Throws()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var nonSectorAllignedPosition = file.DiskSector.LogicalSize + 1;
 
         Action settingLengthToNonSectorAlignedPosition = () => file.SetLength(nonSectorAllignedPosition);
@@ -54,7 +49,7 @@ public class IOTest
     [Fact]
     public void Write_AlignedNumberOfBytes_WritesThatNumberOfBytes()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var alignedNumberOfBytes = file.DiskSector.LogicalSize;
 
         var array = new byte[alignedNumberOfBytes];
@@ -66,7 +61,7 @@ public class IOTest
     [Fact]
     public void Write_NonAlignedNumberOfBytes_Throws()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var nonAlignedNumberOfBytes = file.DiskSector.LogicalSize + 1;
         
         Action writingNonAlignedNumberOfBytes = () => file.Write(new byte[nonAlignedNumberOfBytes], 0, nonAlignedNumberOfBytes);
@@ -77,7 +72,7 @@ public class IOTest
     [Fact]
     public void Read_AlignedNumberOfBytes_ReadsThatNumberOfBytes()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var alignedNumberOfBytes = file.DiskSector.LogicalSize;
         var array = new byte[alignedNumberOfBytes];
         file.Write(array, 0, alignedNumberOfBytes);
@@ -89,7 +84,7 @@ public class IOTest
     [Fact]
     public void Read_NonAlignedNumberOfBytes_Throws()
     {
-        using var file = TestFile;
+        using var file = TestData.TestFile;
         var alignedNumberOfBytes = file.DiskSector.LogicalSize;
         var nonAlignedNumberOfBytes = file.DiskSector.LogicalSize + 1;
         var array = new byte[nonAlignedNumberOfBytes];
