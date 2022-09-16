@@ -112,7 +112,10 @@ public class UnbufferedFileStream : Stream
     public override void Write(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
-        Position = _length = Win32.WriteFile(_Handle, buffer, offset, count);
+        long newPosition = Position + Win32.WriteFile(_Handle, buffer, offset, count);
+        if (newPosition > Length) _length += newPosition - Length;
+        Position = newPosition;
+        SetLength(Length);
     }
 
     public void Lock(long position, long length) => Win32.LockFile(_Handle, position, length);
