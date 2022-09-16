@@ -1,6 +1,6 @@
 ﻿namespace Ubio.Test.Adapters;
 
-public class DiskWriterTest
+public class DiskSectorWriterTest
 {
     [Fact]
     public void WriteSector_WritesLogicalSector()
