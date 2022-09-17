@@ -15,6 +15,16 @@ public class UnbufferedFileTest
         UnbufferedFile.OpenRead(path).Length.Should().Be(sectorAlignedNumberOfBytes);
     }
     
+    [Fact]
+    public void Write_SectorAlignedNumberOfBytes_WritesThatNumberOfBytes()
+    {
+        var path = Path.GetTempFileName();
+
+        UnbufferedFile.WriteAllBytes(path, new byte[1024 * 1024 * 1024]);
+
+        UnbufferedFile.OpenRead(path).Length.Should().Be(1024 * 1024 * 1024);
+    }
+    
     [Theory]
     [MemberData(nameof(TestData.NonSectorAlignedNumberOfBytes), MemberType = typeof(TestData))]
     public void WriteAllBytes_NonSectorAlignedNumberOfBytes_WritesExtraSectorAlignedNumberOfBytes(

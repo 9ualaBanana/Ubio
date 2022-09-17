@@ -57,33 +57,35 @@ public static class UnbufferedFile
     public static byte[][] ReadAllLogicalSectors(string path) => ReadAllLogicalSectorsAsync(path).Result;
 
     public static async Task<byte[][]> ReadAllLogicalSectorsAsync(string path, CancellationToken cancellationToken = default) =>
-        await _ReadAllSectorsAsync(path, ReadLogicalSectors, cancellationToken);
+        await _ReadAllSectorsAsyncCore(path, ReadLogicalSectors, cancellationToken);
 
     public static byte[][] ReadAllPhysicalSectors(string path) => ReadAllPhysicalSectorsAsync(path).Result;
 
     public static async Task<byte[][]> ReadAllPhysicalSectorsAsync(string path, CancellationToken cancellationToken = default) =>
-        await _ReadAllSectorsAsync(path, ReadPhysicalSectors, cancellationToken);
+        await _ReadAllSectorsAsyncCore(path, ReadPhysicalSectors, cancellationToken);
 
-    static async Task<byte[][]> _ReadAllSectorsAsync(string path, Func<string, IEnumerable<byte[]>> reader, CancellationToken cancellationToken = default) =>
-        (await Task.Run(
+    static async Task<byte[][]> _ReadAllSectorsAsyncCore(
+        string path,
+        Func<string, IEnumerable<byte[]>> reader,
+        CancellationToken cancellationToken = default) => (await Task.Run(
             () => reader(path),
-            cancellationToken))
-        .ToArray();
+            cancellationToken)
+        ).ToArray();
 
 
     public static IEnumerable<byte[]> ReadLogicalSectors(string path)
     {
         var unbufferedFileStream = OpenRead(path);
-        return _ReadSectors(unbufferedFileStream, unbufferedFileStream.DiskSector.LogicalSize);
+        return _ReadSectorsCore(unbufferedFileStream, unbufferedFileStream.DiskSector.LogicalSize);
     }
 
     public static IEnumerable<byte[]> ReadPhysicalSectors(string path)
     {
         var unbufferedFileStream = OpenRead(path);
-        return _ReadSectors(unbufferedFileStream, unbufferedFileStream.DiskSector.PhysicalSize);
+        return _ReadSectorsCore(unbufferedFileStream, unbufferedFileStream.DiskSector.PhysicalSize);
     }
 
-    static IEnumerable<byte[]> _ReadSectors(UnbufferedFileStream unbufferedFileStream, int sectorSize)
+    static IEnumerable<byte[]> _ReadSectorsCore(UnbufferedFileStream unbufferedFileStream, int sectorSize)
     {
         using var diskSectorReader = new DiskSectorReader(unbufferedFileStream);
 
@@ -114,7 +116,7 @@ public static class UnbufferedFile
             sectors[^1] = sector;
         }
 
-        await _WriteAllSectorsAsync(unbufferedFileStream, sectors, cancellationToken);
+        await _WriteAllSectorsAsyncCore(unbufferedFileStream, sectors, cancellationToken);
     }
 
     public static void AppendAllSectors(string path, IEnumerable<byte[]> sectors) =>
@@ -124,7 +126,7 @@ public static class UnbufferedFile
         string path,
         IEnumerable<byte[]> sectors,
         CancellationToken cancellationToken = default)
-    { await _WriteAllSectorsAsync(new UnbufferedFileStream(path, FileMode.Append), sectors, cancellationToken); }
+    { await _WriteAllSectorsAsyncCore(new UnbufferedFileStream(path, FileMode.Append), sectors, cancellationToken); }
 
     public static void WriteAllSectors(string path, IEnumerable<byte[]> sectors) =>
         WriteAllSectorsAsync(path, sectors).Wait();
@@ -133,9 +135,9 @@ public static class UnbufferedFile
         string path,
         IEnumerable<byte[]> sectors,
         CancellationToken cancellationToken = default)
-    { await _WriteAllSectorsAsync(OpenWrite(path), sectors, cancellationToken); }
+    { await _WriteAllSectorsAsyncCore(OpenWrite(path), sectors, cancellationToken); }
 
-    static async Task _WriteAllSectorsAsync(
+    static async Task _WriteAllSectorsAsyncCore(
         UnbufferedFileStream unbufferedFileStream,
         IEnumerable<byte[]> sectors,
         CancellationToken cancellationToken = default)

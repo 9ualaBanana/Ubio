@@ -87,7 +87,7 @@ public class UnbufferedFileStream : Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
-        return Win32.ReadFile(_Handle, buffer, offset, count);
+        return _PerformPositionChangingOperation(() => Win32.ReadFile(_Handle, buffer, offset, count));
     }
 
     public override long Seek(long offset, SeekOrigin origin)
@@ -113,10 +113,21 @@ public class UnbufferedFileStream : Stream
     public override void Write(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
-        long newPosition = Position + Win32.WriteFile(_Handle, buffer, offset, count);
+        _PerformPositionChangingOperation(
+            () => Win32.WriteFile(_Handle, buffer, offset, count),
+            setLength: true);
+    }
+
+    int _PerformPositionChangingOperation(Func<int> operation, bool setLength = false)
+    {
+        int positionChange;
+
+        long newPosition = Position + (positionChange = operation());
         if (newPosition > Length) _length += newPosition - Length;
         Position = newPosition;
-        SetLength(Length);
+        if (setLength) SetLength(Length);
+
+        return positionChange;
     }
 
     public void Lock(long position, long length) => Win32.LockFile(_Handle, position, length);

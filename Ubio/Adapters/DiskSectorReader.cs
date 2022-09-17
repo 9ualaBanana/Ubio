@@ -5,7 +5,7 @@ public class DiskSectorReader : IDisposable
     readonly bool _leaveOpen;
 
 
-    public virtual UnbufferedFileStream UnbufferedFileStream { get; }
+    public UnbufferedFileStream UnbufferedFileStream { get; }
     public bool EndOfStream => UnbufferedFileStream.Position >= UnbufferedFileStream.Length;
 
 
@@ -24,11 +24,11 @@ public class DiskSectorReader : IDisposable
     #endregion
 
 
-    public void SkipLogicalSector() => _SkipSector(UnbufferedFileStream.DiskSector.LogicalSize);
+    public void SkipLogicalSector() => _SkipSectorCore(UnbufferedFileStream.DiskSector.LogicalSize);
 
-    public void SkipPhysicalSector() => _SkipSector(UnbufferedFileStream.DiskSector.PhysicalSize);
+    public void SkipPhysicalSector() => _SkipSectorCore(UnbufferedFileStream.DiskSector.PhysicalSize);
 
-    void _SkipSector(int sectorSize)
+    void _SkipSectorCore(int sectorSize)
     {
         if (UnbufferedFileStream.Position + sectorSize <= UnbufferedFileStream.Length)
         { UnbufferedFileStream.Seek(sectorSize, SeekOrigin.Current); }
@@ -37,28 +37,28 @@ public class DiskSectorReader : IDisposable
     }
 
 
-    public virtual int ReadLogicalSector(byte[] buffer, int index) => ReadLogicalSectorAsync(buffer, index).Result;
+    public int ReadLogicalSector(byte[] buffer, int index) => ReadLogicalSectorAsync(buffer, index).Result;
 
-    public virtual int ReadPhysicalSector(byte[] buffer, int index) => ReadPhysicalSectorAsync(buffer, index).Result;
+    public int ReadPhysicalSector(byte[] buffer, int index) => ReadPhysicalSectorAsync(buffer, index).Result;
 
-    public virtual async Task<int> ReadLogicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
+    public async Task<int> ReadLogicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
         await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.LogicalSize);
 
-    public virtual async Task<int> ReadPhysicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
+    public async Task<int> ReadPhysicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
         await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.PhysicalSize);
 
     async Task<int> _ReadSectorAsync(byte[] buffer, int index, int sectorSize, CancellationToken cancellationToken = default) =>
-        await _ReadSectorAsync(buffer.AsMemory(index, sectorSize), cancellationToken);
+        await _ReadSectorAsyncCore(buffer.AsMemory(index, sectorSize), cancellationToken);
 
-    async Task<int> _ReadSectorAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+    async Task<int> _ReadSectorAsyncCore(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
         await UnbufferedFileStream.ReadAsync(buffer, cancellationToken);
 
 
-    public virtual long ToPreviousLogicalSector() => _ToPreviousSector(UnbufferedFileStream.DiskSector.LogicalSize);
+    public long ToPreviousLogicalSector() => _ToPreviousSectorCore(UnbufferedFileStream.DiskSector.LogicalSize);
 
-    public virtual long ToPreviousPhysicalSector() => _ToPreviousSector(UnbufferedFileStream.DiskSector.PhysicalSize);
+    public long ToPreviousPhysicalSector() => _ToPreviousSectorCore(UnbufferedFileStream.DiskSector.PhysicalSize);
 
-    long _ToPreviousSector(int sectorSize) => UnbufferedFileStream.Position < sectorSize ?
+    long _ToPreviousSectorCore(int sectorSize) => UnbufferedFileStream.Position < sectorSize ?
         UnbufferedFileStream.Seek(0, SeekOrigin.Begin) : UnbufferedFileStream.Seek(-sectorSize, SeekOrigin.Current);
 
 
