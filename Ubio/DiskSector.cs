@@ -14,13 +14,11 @@ public class DiskSector
     }
 
 
-    public int EnsureIsAligned(int fileAccessSize) => (int)EnsureIsAligned((long)fileAccessSize);
-    public long EnsureIsAligned(long fileAccessSize)
+    public void EnsureIsAligned(long fileAccessSize)
     {
         if (!IsAligned(fileAccessSize))
             throw new ArgumentOutOfRangeException(
                 nameof(fileAccessSize),
                 "Unbuffered file access sizes must be for a number of bytes that is an integer multiple of the volume sector size.");
-        return fileAccessSize;
     }
 }
