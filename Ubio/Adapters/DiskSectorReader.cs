@@ -42,10 +42,10 @@ public class DiskSectorReader : IDisposable
     public int ReadPhysicalSector(byte[] buffer, int index) => ReadPhysicalSectorAsync(buffer, index).Result;
 
     public async Task<int> ReadLogicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
-        await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.LogicalSize);
+        await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.LogicalSize, cancellationToken);
 
     public async Task<int> ReadPhysicalSectorAsync(byte[] buffer, int index, CancellationToken cancellationToken = default) =>
-        await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.PhysicalSize);
+        await _ReadSectorAsync(buffer, index, UnbufferedFileStream.DiskSector.PhysicalSize, cancellationToken);
 
     async Task<int> _ReadSectorAsync(byte[] buffer, int index, int sectorSize, CancellationToken cancellationToken = default) =>
         await _ReadSectorAsyncCore(buffer.AsMemory(index, sectorSize), cancellationToken);

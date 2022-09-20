@@ -19,10 +19,13 @@ public class UnbufferedFileTest
     public void Write_SectorAlignedNumberOfBytes_WritesThatNumberOfBytes()
     {
         var path = Path.GetTempFileName();
+        int numberOfBytes;
+        using (var unbufferedFileStream = TestData.TestFile)
+        { numberOfBytes = unbufferedFileStream.DiskSector.PhysicalSize * 2; }
 
-        UnbufferedFile.WriteAllBytes(path, new byte[1024 * 1024 * 1024]);
+        UnbufferedFile.WriteAllBytes(path, new byte[numberOfBytes]);
 
-        UnbufferedFile.OpenRead(path).Length.Should().Be(1024 * 1024 * 1024);
+        UnbufferedFile.OpenRead(path).Length.Should().Be(numberOfBytes);
     }
     
     [Theory]
