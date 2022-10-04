@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace Ubio.Internal;
 
+[SupportedOSPlatform("windows")]
 internal static class Win32
 {
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -50,10 +52,7 @@ internal static class Win32
         [In] ref NativeOverlapped lpOverlapped);
 
     static NativeOverlapped ForIO(this NativeOverlapped nativeOverlapped)
-    { nativeOverlapped.EventHandle = CreateEvent(IntPtr.Zero, bManualReset: true); return nativeOverlapped; }
-
-    [DllImport("kernel32.dll")]
-    static extern IntPtr CreateEvent(IntPtr lpEventAttributes, bool bManualReset, bool bInitialState = false, string? lpName = null);
+    { nativeOverlapped.EventHandle = new ManualResetEventSlim().WaitHandle.GetSafeWaitHandle().DangerousGetHandle(); return nativeOverlapped; }
 
     static int GetOverlappedOrThrow(IntPtr hFile, ref NativeOverlapped lpOverlapped, Action<Exception>? errorWrapper = null)
     {
@@ -183,5 +182,5 @@ internal static class Win32
     }
 
     static void ThrowExceptionForLastWin32ErrorCore()
-    { Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error(), new IntPtr(-1)); throw new Exception(); }
+    { Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error(), new IntPtr(-1)); }
 }
