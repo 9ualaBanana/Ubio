@@ -20,9 +20,9 @@ internal static class Win32
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
 
-        if (WriteFile(hFile, lpBuffer, nNumberOfBytesToRead, out var lpNumberOfBytesRead, ref overlappedWithOffset))
+        if (WriteFile(hFile, lpBuffer, nNumberOfBytesToRead, out var lpNumberOfBytesRead, in overlappedWithOffset))
             return lpNumberOfBytesRead;
-        else return GetOverlappedOrThrow(hFile, ref overlappedWithOffset);
+        else return GetOverlappedOrThrow(hFile, in overlappedWithOffset);
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -31,15 +31,15 @@ internal static class Win32
         byte[] lpBuffer,
         int nNumberOfBytesToWrite,
         out int lpNumberOfBytesWritten,
-        [In] ref NativeOverlapped lpOverlapped);
+        [In] in NativeOverlapped lpOverlapped);
 
-    internal static int ReadFile(IntPtr hFile, byte[] lpBuffer, int nOffset, int nNumberOfBytesToRead)
+    internal static int ReadFile(IntPtr hFile, byte[] lpBuffer, long nOffset, int nNumberOfBytesToRead)
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
 
-        if (ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, out var lpNumberOfBytesRead, ref overlappedWithOffset))
+        if (ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, out var lpNumberOfBytesRead, in overlappedWithOffset))
             return lpNumberOfBytesRead;
-        else return GetOverlappedOrThrow(hFile, ref overlappedWithOffset,
+        else return GetOverlappedOrThrow(hFile, in overlappedWithOffset,
             ex => throw new ArgumentOutOfRangeException("count", nNumberOfBytesToRead, ""));
     }
 
@@ -49,12 +49,12 @@ internal static class Win32
         byte[] lpBuffer,
         int nNumberOfBytesToRead,
         out int lpNumberOfBytesRead,
-        [In] ref NativeOverlapped lpOverlapped);
+        [In] in NativeOverlapped lpOverlapped);
 
     static NativeOverlapped ForIO(this NativeOverlapped nativeOverlapped)
     { nativeOverlapped.EventHandle = new ManualResetEventSlim().WaitHandle.GetSafeWaitHandle().DangerousGetHandle(); return nativeOverlapped; }
 
-    static int GetOverlappedOrThrow(IntPtr hFile, ref NativeOverlapped lpOverlapped, Action<Exception>? errorWrapper = null)
+    static int GetOverlappedOrThrow(IntPtr hFile, in NativeOverlapped lpOverlapped, Action<Exception>? errorWrapper = null)
     {
         const uint ERROR_SUCCESS = 0X0;
         const uint ERROR_IO_PENDING = 0x3E5;
@@ -63,13 +63,13 @@ internal static class Win32
         if (lastError != ERROR_SUCCESS && lastError != ERROR_IO_PENDING)
         { ThrowExceptionForLastWin32Error(errorWrapper); }
 
-        GetOverlappedResult(hFile, ref lpOverlapped, out int lpNumberOfBytesTransferred, true); return lpNumberOfBytesTransferred;
+        GetOverlappedResult(hFile, in lpOverlapped, out int lpNumberOfBytesTransferred, true); return lpNumberOfBytesTransferred;
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern bool GetOverlappedResult(
         IntPtr hFile,
-        [In] ref NativeOverlapped lpOverlapped,
+        [In] in NativeOverlapped lpOverlapped,
         out int lpNumberOfBytesTransferred,
         bool bWait);
 
