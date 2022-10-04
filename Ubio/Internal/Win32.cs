@@ -16,7 +16,7 @@ internal static class Win32
     [MarshalAs(UnmanagedType.U4)] uint dwFlagsAndAttributes,
     IntPtr hTemplateFile);
 
-    internal static int WriteFile(IntPtr hFile, byte[] lpBuffer, int nOffset, int nNumberOfBytesToRead)
+    internal static int WriteFile(IntPtr hFile, byte[] lpBuffer, long nOffset, int nNumberOfBytesToRead)
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
 

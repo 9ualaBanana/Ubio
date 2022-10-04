@@ -44,14 +44,20 @@ public class UnbufferedFileStream : Stream
 
     /// <inheritdoc/>
     public override long Length => _length;
+    void _SetLengthWithNoKernelCall(long value) => _length = value;
     long _length;
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Setter is an alias for <see cref="Seek(long, SeekOrigin)"/> so the same performance considerations apply
+    /// (<i>see </i><see cref="SetLength(long)"/> <i>remarks</i>).
+    /// </remarks>
     public override long Position
     {
         get => _position;
         set => Seek(value, SeekOrigin.Begin);
     }
+    void _SetPositionWithNoKernelCall(long value) => _position = value;
     long _position;
 
     /// <summary>
@@ -117,6 +123,10 @@ public class UnbufferedFileStream : Stream
 
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Settings this property to <see langword="true"/> (<i>via constructors that accept</i> <see cref="FileAccess"/> <i>or</i> <see cref="FileShare"/>)
+    /// requires tracking <see cref="Position"/> and <see cref="Length"/> on kernel level which reduces write speed upto 5 times.
+    /// </remarks>
     public override bool CanRead => _fileAccess.HasFlag(FileAccess.Read);
     /// <inheritdoc/>
     public override bool CanSeek => true;
@@ -129,10 +139,13 @@ public class UnbufferedFileStream : Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
-        return _PerformPositionChangingOperation(() => Win32.ReadFile(_Handle, buffer, offset, count));
+        return _PerformPositionChangingOperation(() => Win32.ReadFile(_Handle, buffer[offset..], _position, count));
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Sets file pointer on kernel level (<i>reduces write speed upto 5 times</i>).
+    /// </remarks>
     public override long Seek(long offset, SeekOrigin origin)
     {
         DiskSector.EnsureIsAligned(offset);
@@ -140,6 +153,9 @@ public class UnbufferedFileStream : Stream
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Sets file length on kernel level (<i>reduces write speed upto 5 times</i>).
+    /// </remarks>
     public override void SetLength(long value)
     {
         var position = _position;
@@ -155,11 +171,14 @@ public class UnbufferedFileStream : Stream
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Performs upto 5 times slower if <see cref="CanRead"/> is <see langword="true"/> due to overhead caused by kernel calls.
+    /// </remarks>
     public override void Write(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
         _PerformPositionChangingOperation(
-            () => Win32.WriteFile(_Handle, buffer, offset, count),
+            () => Win32.WriteFile(_Handle, buffer[offset..], _position, count),
             setLength: true);
     }
 
@@ -167,10 +186,15 @@ public class UnbufferedFileStream : Stream
     {
         int positionChange;
 
+        // TODO: Add comment that explains logic here.
         long newPosition = Position + (positionChange = operation());
-        if (newPosition > Length) _length += newPosition - Length;
-        Position = newPosition;
-        if (setLength) SetLength(Length);
+        if (newPosition > _length) _length += newPosition - _length;
+
+        if (setLength)
+            if (CanRead)
+            { Position = newPosition; SetLength(_length); }
+            else
+            { _SetPositionWithNoKernelCall(newPosition); _SetLengthWithNoKernelCall(_length); }
 
         return positionChange;
     }
