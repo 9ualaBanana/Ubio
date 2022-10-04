@@ -2,21 +2,26 @@
 
 namespace Ubio.Internal;
 
+[SupportedOSPlatform("windows")]
 internal readonly struct OrderedBytes
 {
-    internal readonly int Low;
-    internal readonly int High;
+    internal int Low { get; init; }
+    internal int High { get; init; }
+    internal NativeOverlapped AsNativeOverlapped { get; init; }
 
 
     #region Initialization
-    internal OrderedBytes(int value) => (Low, High) = Init(BitConverter.GetBytes(value), value);
+    internal OrderedBytes(int value) => (Low, High, AsNativeOverlapped) = Init(BitConverter.GetBytes(value), value);
 
-    internal OrderedBytes(long value) => (Low, High) = Init(BitConverter.GetBytes(value), value);
+    internal OrderedBytes(long value) => (Low, High, AsNativeOverlapped) = Init(BitConverter.GetBytes(value), value);
 
-    static (int Low, int High) Init<T>(byte[] bytes, T value)
+    static (int Low, int High, NativeOverlapped AsNativeOverlapped) Init<T>(byte[] bytes, T value)
     {
         var (left, right) = ToLeftRightBytes(bytes, value);
-        return BitConverter.IsLittleEndian ? (left, right) : (right, left);
+        var (low, high) = BitConverter.IsLittleEndian ? (left, right) : (right, left);
+        var asNativeOverlapped = new NativeOverlapped() { OffsetLow = low, OffsetHigh = high };
+
+        return (low, high, asNativeOverlapped);
     }
 
     static Span<byte> LeftBytes(byte[] bytes) => bytes.AsSpan()[..(bytes.Length / 2)];
@@ -29,8 +34,4 @@ internal readonly struct OrderedBytes
         _ => throw new NotImplementedException()
     };
     #endregion
-
-
-    [SupportedOSPlatform("windows")]
-    internal NativeOverlapped AsNativeOverlapped => new() { OffsetLow = Low, OffsetHigh = High };
 }
