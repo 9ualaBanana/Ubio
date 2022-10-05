@@ -162,7 +162,7 @@ internal static class Kernel32
         uint nNumberOfBytesToLockLow,
         uint nNumberOfBytesToLockHigh);
 
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetDiskFreeSpaceW", ExactSpelling = true)]
     internal static extern bool GetDiskFreeSpace(
         string? lpRootPathName,
         out uint lpSectorsPerCluster,
