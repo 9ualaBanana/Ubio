@@ -186,17 +186,22 @@ public class UnbufferedFileStream : Stream
     {
         int positionChange;
 
-        // TODO: Add comment that explains logic here.
-        long newPosition = Position + (positionChange = operation());
-        if (newPosition > _length) _length += newPosition - _length;
+       long newPosition = _ChangePositionBy(positionChange = operation());
 
         if (setLength)
             if (CanRead)
-            { Position = newPosition; SetLength(_length); }
+            { Position = newPosition; if (newPosition > _length) SetLength(newPosition); }
             else
-            { _SetPositionWithNoKernelCall(newPosition); _SetLengthWithNoKernelCall(_length); }
+            { _SetPositionWithNoKernelCall(newPosition); if (newPosition > _length) _SetLengthWithNoKernelCall(newPosition); }
 
         return positionChange;
+    }
+
+    long _ChangePositionBy(int offset)
+    {
+        long newPosition = Position + offset;
+        if (newPosition > _length) _length += newPosition - _length;
+        return newPosition;
     }
 
     /// <inheritdoc/>
@@ -210,8 +215,12 @@ public class UnbufferedFileStream : Stream
     /// <inheritdoc/>
     protected override void Dispose(bool managed)
     {
-        if (!_isDisposed && managed)
-            SafeFileHandle.Dispose();
+        if (!_isDisposed)
+        {
+            SetLength(_length);
+            if (managed)
+                SafeFileHandle.Dispose();
+        }
         
         _isDisposed = true;
     }
