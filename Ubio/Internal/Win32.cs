@@ -6,22 +6,22 @@ namespace Ubio.Internal;
 [SupportedOSPlatform("windows")]
 internal static class Win32
 {
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     internal static extern IntPtr CreateFile(
-    [MarshalAs(UnmanagedType.LPWStr)] string lpFileName,
-    [MarshalAs(UnmanagedType.U4)] FileAccess dwDesiredAccess,
-    [MarshalAs(UnmanagedType.U4)] FileShare dwShareMode,
+    string lpFileName,
+    FileAccess dwDesiredAccess,
+    FileShare dwShareMode,
     IntPtr lpSecurityAttributes,
-    [MarshalAs(UnmanagedType.U4)] FileMode dwCreationDisposition,
-    [MarshalAs(UnmanagedType.U4)] uint dwFlagsAndAttributes,
+    FileMode dwCreationDisposition,
+    uint dwFlagsAndAttributes,
     IntPtr hTemplateFile);
 
     internal static int WriteFile(IntPtr hFile, byte[] lpBuffer, long nOffset, int nNumberOfBytesToWrite)
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
 
-        if (WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, out var lpNumberOfBytesRead, in overlappedWithOffset))
-            return lpNumberOfBytesRead;
+        if (WriteFile(hFile, lpBuffer, (uint)nNumberOfBytesToWrite, out var lpNumberOfBytesWritten, in overlappedWithOffset))
+            return (int)lpNumberOfBytesWritten;
         else return GetOverlappedOrThrow(hFile, in overlappedWithOffset);
     }
 
@@ -29,16 +29,16 @@ internal static class Win32
     internal static extern bool WriteFile(
         IntPtr hFile,
         byte[] lpBuffer,
-        int nNumberOfBytesToWrite,
-        out int lpNumberOfBytesWritten,
+        uint nNumberOfBytesToWrite,
+        out uint lpNumberOfBytesWritten,
         [In] in NativeOverlapped lpOverlapped);
 
     internal static int ReadFile(IntPtr hFile, byte[] lpBuffer, long nOffset, int nNumberOfBytesToRead)
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
 
-        if (ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, out var lpNumberOfBytesRead, in overlappedWithOffset))
-            return lpNumberOfBytesRead;
+        if (ReadFile(hFile, lpBuffer, (uint)nNumberOfBytesToRead, out var lpNumberOfBytesRead, in overlappedWithOffset))
+            return (int)lpNumberOfBytesRead;
         else return GetOverlappedOrThrow(hFile, in overlappedWithOffset,
             ex => throw new ArgumentOutOfRangeException("count", nNumberOfBytesToRead, ""));
     }
@@ -47,12 +47,9 @@ internal static class Win32
     internal static extern bool ReadFile(
         IntPtr hFile,
         byte[] lpBuffer,
-        int nNumberOfBytesToRead,
-        out int lpNumberOfBytesRead,
+        uint nNumberOfBytesToRead,
+        out uint lpNumberOfBytesRead,
         [In] in NativeOverlapped lpOverlapped);
-
-    static NativeOverlapped ForIO(this NativeOverlapped nativeOverlapped)
-    { nativeOverlapped.EventHandle = new ManualResetEventSlim().WaitHandle.GetSafeWaitHandle().DangerousGetHandle(); return nativeOverlapped; }
 
     static int GetOverlappedOrThrow(IntPtr hFile, in NativeOverlapped lpOverlapped, Action<Exception>? errorWrapper = null)
     {
@@ -63,14 +60,16 @@ internal static class Win32
         if (lastError != ERROR_SUCCESS && lastError != ERROR_IO_PENDING)
         { ThrowExceptionForLastWin32Error(errorWrapper); }
 
-        GetOverlappedResult(hFile, in lpOverlapped, out int lpNumberOfBytesTransferred, true); return lpNumberOfBytesTransferred;
+        if (!GetOverlappedResult(hFile, in lpOverlapped, out var lpNumberOfBytesTransferred, true))
+            ThrowExceptionForLastWin32Error();
+        return (int)lpNumberOfBytesTransferred;
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [DllImport("kernel32.dll", ExactSpelling = true)]
     static extern bool GetOverlappedResult(
         IntPtr hFile,
         [In] in NativeOverlapped lpOverlapped,
-        out int lpNumberOfBytesTransferred,
+        out uint lpNumberOfBytesTransferred,
         bool bWait);
 
     internal static long GetFileSize(IntPtr hFile)
@@ -81,8 +80,8 @@ internal static class Win32
         return size;
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    static extern bool GetFileSizeEx(IntPtr hFile, out long lpFileSize);
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    static extern bool GetFileSizeEx(IntPtr hFile, out uint lpFileSize);
 
 
     internal static long GetFilePointerPosition(IntPtr hFile)
@@ -101,7 +100,7 @@ internal static class Win32
         return position;
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
     static extern bool SetFilePointerEx(IntPtr hFile, long liDistanceToMove, out long lpNewFilePointer, SeekOrigin dwMoveMethod);
 
 
@@ -111,12 +110,12 @@ internal static class Win32
             ThrowExceptionForLastWin32Error();
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
     static extern bool SetEndOfFile(IntPtr hFile);
 
     internal static (int Logical, int Physical) GetSectorSizes(string? lpRootPathName)
     {
-        if (!GetDiskFreeSpace(lpRootPathName, out long sectorsPerCluster, out long logicalSectorSize, out _, out _))
+        if (!GetDiskFreeSpace(lpRootPathName, out var sectorsPerCluster, out var logicalSectorSize, out _, out _))
             ThrowExceptionForLastWin32Error();
 
         return ((int)logicalSectorSize, (int)(logicalSectorSize * sectorsPerCluster));
@@ -134,7 +133,7 @@ internal static class Win32
         { ThrowExceptionForLastWin32Error(); }
     }
 
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
     static extern bool LockFile(
         IntPtr hFile,
         uint dwFileOffsetLow,
@@ -155,7 +154,7 @@ internal static class Win32
 
     }
 
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
     static extern bool UnlockFile(
         IntPtr hFile,
         uint dwFileOffsetLow,
@@ -163,13 +162,17 @@ internal static class Win32
         uint nNumberOfBytesToLockLow,
         uint nNumberOfBytesToLockHigh);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     internal static extern bool GetDiskFreeSpace(
         string? lpRootPathName,
-        out long lpSectorsPerCluster,
-        out long lpBytesPerSector,
-        out long lpNumberOfFreeClusters,
-        out long lpTotalNumberOfClusters);
+        out uint lpSectorsPerCluster,
+        out uint lpBytesPerSector,
+        out uint lpNumberOfFreeClusters,
+        out uint lpTotalNumberOfClusters);
+
+    #region Helpers
+    static NativeOverlapped ForIO(this NativeOverlapped nativeOverlapped)
+    { nativeOverlapped.EventHandle = new ManualResetEventSlim().WaitHandle.GetSafeWaitHandle().DangerousGetHandle(); return nativeOverlapped; }
 
     static void ThrowExceptionForLastWin32Error(Action<Exception>? errorWrapper = null)
     {
@@ -183,4 +186,5 @@ internal static class Win32
 
     static void ThrowExceptionForLastWin32ErrorCore()
     { Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error(), new IntPtr(-1)); }
+    #endregion
 }

@@ -47,15 +47,14 @@ public class UnbufferedFileStreamTest
     }
 
     [Fact]
-    public void Write_AlignedNumberOfBytes_WritesThatNumberOfBytes()
+    public void Write_LoficalSizeNumberOfBytes_WritesThatNumberOfBytes()
     {
         using var file = TestData.TestFile;
-        var alignedNumberOfBytes = file.DiskSector.LogicalSize;
 
-        var array = new byte[alignedNumberOfBytes];
-        file.Write(array, 0, alignedNumberOfBytes);
+        var array = new byte[file.DiskSector.LogicalSize];
+        file.Write(array, 0, file.DiskSector.LogicalSize);
 
-        file.Length.Should().Be(alignedNumberOfBytes);
+        file.Length.Should().Be(file.DiskSector.LogicalSize);
     }
 
     [Fact]
