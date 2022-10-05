@@ -103,7 +103,7 @@ public class UnbufferedFileStream : Stream
     public UnbufferedFileStream(string path, FileStreamOptions options)
     {
         SafeFileHandle = new(
-            Win32.CreateFile(
+            Kernel32.CreateFile(
                 path,
                 options.Access,
                 options.Share,
@@ -115,8 +115,8 @@ public class UnbufferedFileStream : Stream
         DiskSector = new(path);
         Name = path;
         _fileAccess = options.Access;
-        _length = Win32.GetFileSize(_Handle);
-        _position = Win32.GetFilePointerPosition(_Handle);
+        _length = Kernel32.GetFileSize(_Handle);
+        _position = Kernel32.GetFilePointerPosition(_Handle);
         IsAsync = options.Options.HasFlag(FileOptions.Asynchronous);
     }
     #endregion
@@ -139,7 +139,7 @@ public class UnbufferedFileStream : Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         DiskSector.EnsureIsAligned(count);
-        return _PerformPositionChangingOperation(() => Win32.ReadFile(_Handle, buffer[offset..], _position, count));
+        return _PerformPositionChangingOperation(() => Kernel32.ReadFile(_Handle, buffer[offset..], _position, count));
     }
 
     /// <inheritdoc/>
@@ -149,7 +149,7 @@ public class UnbufferedFileStream : Stream
     public override long Seek(long offset, SeekOrigin origin)
     {
         DiskSector.EnsureIsAligned(offset);
-        return _position = Win32.SetFilePointerPosition(_Handle, offset, origin);
+        return _position = Kernel32.SetFilePointerPosition(_Handle, offset, origin);
     }
 
     /// <inheritdoc/>
@@ -166,7 +166,7 @@ public class UnbufferedFileStream : Stream
     void _SetLengthCore(long value)
     {
         Seek(value, SeekOrigin.Begin);
-        Win32.SetFileEnd(_Handle);
+        Kernel32.SetFileEnd(_Handle);
         _length = value;
     }
 
@@ -178,7 +178,7 @@ public class UnbufferedFileStream : Stream
     {
         DiskSector.EnsureIsAligned(count);
         _PerformPositionChangingOperation(
-            () => Win32.WriteFile(_Handle, buffer[offset..], _position, count),
+            () => Kernel32.WriteFile(_Handle, buffer[offset..], _position, count),
             setLength: true);
     }
 
@@ -205,10 +205,10 @@ public class UnbufferedFileStream : Stream
     }
 
     /// <inheritdoc/>
-    public void Lock(long position, long length) => Win32.LockFile(_Handle, position, length);
+    public void Lock(long position, long length) => Kernel32.LockFile(_Handle, position, length);
 
     /// <inheritdoc cref="FileStream.Unlock(long, long)"/>
-    public void Unlock(long position, long length) => Win32.UnlockFile(_Handle, position, length);
+    public void Unlock(long position, long length) => Kernel32.UnlockFile(_Handle, position, length);
 
 
     #region IDisposable

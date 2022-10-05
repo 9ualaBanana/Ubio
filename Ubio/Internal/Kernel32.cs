@@ -4,7 +4,7 @@ using System.Runtime.Versioning;
 namespace Ubio.Internal;
 
 [SupportedOSPlatform("windows")]
-internal static class Win32
+internal static class Kernel32
 {
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     internal static extern IntPtr CreateFile(
@@ -169,6 +169,7 @@ internal static class Win32
         out uint lpBytesPerSector,
         out uint lpNumberOfFreeClusters,
         out uint lpTotalNumberOfClusters);
+
 
     #region Helpers
     static NativeOverlapped ForIO(this NativeOverlapped nativeOverlapped)
