@@ -6,16 +6,7 @@ namespace Ubio.Internal;
 [SupportedOSPlatform("windows")]
 internal static class Kernel32
 {
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    internal static extern IntPtr CreateFile(
-    string lpFileName,
-    FileAccess dwDesiredAccess,
-    FileShare dwShareMode,
-    IntPtr lpSecurityAttributes,
-    FileMode dwCreationDisposition,
-    uint dwFlagsAndAttributes,
-    IntPtr hTemplateFile);
-
+    #region Read/Write
     internal static int WriteFile(IntPtr hFile, byte[] lpBuffer, long nOffset, int nNumberOfBytesToWrite)
     {
         var overlappedWithOffset = new OrderedBytes(nOffset).AsNativeOverlapped.ForIO();
@@ -71,6 +62,18 @@ internal static class Kernel32
         [In] in NativeOverlapped lpOverlapped,
         out uint lpNumberOfBytesTransferred,
         bool bWait);
+    #endregion
+
+    #region File
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    internal static extern IntPtr CreateFile(
+        string lpFileName,
+        FileAccess dwDesiredAccess,
+        FileShare dwShareMode,
+        IntPtr lpSecurityAttributes,
+        FileMode dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
 
     internal static long GetFileSize(IntPtr hFile)
     {
@@ -161,6 +164,7 @@ internal static class Kernel32
         uint dwFileOffsetHigh,
         uint nNumberOfBytesToLockLow,
         uint nNumberOfBytesToLockHigh);
+    #endregion
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetDiskFreeSpaceW", ExactSpelling = true)]
     internal static extern bool GetDiskFreeSpace(
