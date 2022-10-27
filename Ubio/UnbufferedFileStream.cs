@@ -233,7 +233,10 @@ public class UnbufferedFileStream : Stream
     public void Unlock(long position, long length) => Kernel32.UnlockFile(_Handle, position, length);
 
 
-    #region IDisposable
+    #region Finalization
+    /// <inheritdoc/>
+    ~UnbufferedFileStream() => Dispose(false);
+
     /// <inheritdoc/>
     protected override void Dispose(bool managed)
     {

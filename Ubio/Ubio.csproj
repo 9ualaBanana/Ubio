@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<PackageId>Ubio</PackageId>
-	<Version>0.8.9</Version>
+	<Version>0.8.10</Version>
 	<Authors>9ualaBanana</Authors>
 	<Company>9ualaBanana</Company>
 	<Copyright>9ualaBanana</Copyright>
