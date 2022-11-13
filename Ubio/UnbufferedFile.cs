@@ -88,11 +88,13 @@ public static class UnbufferedFile
 
     static async Task<byte[][]> _ReadAllSectorsAsyncCore(
         string path,
-        Func<string, IEnumerable<byte[]>> reader,
+        _Reader reader,
         CancellationToken cancellationToken = default) => (await Task.Run(
             () => reader(path),
             cancellationToken)
         ).ToArray();
+
+    delegate IEnumerable<byte[]> _Reader(string path);
 
 
     public static IEnumerable<byte[]> ReadLogicalSectors(string path)
